@@ -16,6 +16,11 @@ CONFIGURE_ARGS=	--target=${MACHINE_GNU_PLATFORM} --disable-nls \
 		--disable-werror \
 		${BRANDING}
 
+# On Darwin hosts, GNU gold is not available; default to disabling gold.
+# Also default to disabling gold unless explicitly enabled by the environment.
+HAVE_GOLD?=	no
+CONFIGURE_ARGS+=	--enable-ld=default --disable-gold
+
 .if defined(__MINIX) && ! exists(${GNUHOSTDIST}/gas/m68k-parse.c)
 # MINIX: LSC: Make sure we trigger the fetch rule
 .include "${.CURDIR}/../../minix/Makefile.fetchgnu"
@@ -51,13 +56,10 @@ CONFIGURE_ARGS+=	\
 #      linker. Problem is, when Gold is not seen, USE_BITCODE is forced to
 #      "no".
 .if ${MKBITCODE:Uno} == "yes"
+# If explicitly requested and supported, allow gold to be selected as default
 CONFIGURE_ARGS+= \
 	--enable-ld=yes \
 	--enable-gold=default
-.else
-CONFIGURE_ARGS+= \
-	--enable-ld=default \
-	--enable-gold=yes
 .endif # ${MKBITCODE:Uno} == "yes"
 .endif # defined(__MINIX)
 .include "${.CURDIR}/../Makefile.gnuhost"

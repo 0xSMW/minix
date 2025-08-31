@@ -115,19 +115,23 @@ SUBDIR+=  gencat \
 SUBDIR+= cat join lorder m4 mkdep tsort .WAIT yacc .WAIT awk .WAIT lex
 
 .if ${TOOLS_BUILDRUMP} == "no"
-SUBDIR += .WAIT texinfo \
-	.WAIT tic \
-	.WAIT pax \
-	.WAIT ${TOOLCHAIN_BITS} \
-	${DTRACE_BITS} \
-		 cksum \
-		file \
-		makefs .WAIT mkcsmapper mkesdb mklocale \
-		.WAIT \
-		.WAIT \
-		.WAIT \
-		.WAIT installboot \
-		pwd_mkdb strfile zic
+# Build GNU texinfo tools only if info pages are enabled.
+.if ${MKINFO} != "no"
+SUBDIR += .WAIT texinfo
+.endif
+SUBDIR += \
+		.WAIT tic \
+		.WAIT pax \
+		.WAIT ${TOOLCHAIN_BITS} \
+		${DTRACE_BITS} \
+			 cksum \
+			file \
+			makefs .WAIT mkcsmapper mkesdb mklocale \
+			.WAIT \
+			.WAIT \
+			.WAIT \
+			.WAIT installboot \
+			pwd_mkdb strfile zic
 .endif
 SUBDIR+= stat .WAIT
 

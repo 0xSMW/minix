@@ -272,7 +272,9 @@ struct _dirdesc {
 #endif
 #endif
 
-#if !HAVE_ERR_H
+#if HAVE_ERR_H
+#include <err.h>
+#else
 void err(int, const char *, ...);
 void errx(int, const char *, ...);
 void warn(const char *, ...);
@@ -993,6 +995,9 @@ int	 cgetnum(char *, const char *, long *);
 int	 cgetset(const char *);
 int	 cgetstr(char *, const char *, char **);
 int	 cgetustr(char *, const char *, char **);
+
+/* Prototype for NetBSD libc helper used by host tools */
+void	 mi_vector_hash(const void * __restrict, size_t, uint32_t, uint32_t[3]);
 
 /* <sys/endian.h> */
 

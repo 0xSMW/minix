@@ -1493,16 +1493,63 @@ ${var}?= yes
 .endif
 .endfor
 
-#MINIX-specific vars
-.for var in \
-	USE_WATCHDOG USE_ACPI USE_PAE USE_APIC USE_DEBUGREG USE_SYSDEBUG \
-	USE_LIVEUPDATE USE_PCI USE_BITCODE USE_MAGIC USE_ASR
-.if (${${var:S/USE_/MK/}} == "no")
-${var}:= no
-.else
-${var}?= yes
+# MINIX-specific vars (avoid nested ${${...}} expansion for broader bmake compat)
+# Default each USE_* to yes, override to no when corresponding MK* == "no".
+
+USE_WATCHDOG?= yes
+.if defined(MKWATCHDOG) && ${MKWATCHDOG} == "no"
+USE_WATCHDOG:= no
 .endif
-.endfor
+
+USE_ACPI?= yes
+.if defined(MKACPI) && ${MKACPI} == "no"
+USE_ACPI:= no
+.endif
+
+USE_PAE?= yes
+.if defined(MKPAE) && ${MKPAE} == "no"
+USE_PAE:= no
+.endif
+
+USE_APIC?= yes
+.if defined(MKAPIC) && ${MKAPIC} == "no"
+USE_APIC:= no
+.endif
+
+USE_DEBUGREG?= yes
+.if defined(MKDEBUGREG) && ${MKDEBUGREG} == "no"
+USE_DEBUGREG:= no
+.endif
+
+USE_SYSDEBUG?= yes
+.if defined(MKSYSDEBUG) && ${MKSYSDEBUG} == "no"
+USE_SYSDEBUG:= no
+.endif
+
+USE_LIVEUPDATE?= yes
+.if defined(MKLIVEUPDATE) && ${MKLIVEUPDATE} == "no"
+USE_LIVEUPDATE:= no
+.endif
+
+USE_PCI?= yes
+.if defined(MKPCI) && ${MKPCI} == "no"
+USE_PCI:= no
+.endif
+
+USE_BITCODE?= yes
+.if defined(MKBITCODE) && ${MKBITCODE} == "no"
+USE_BITCODE:= no
+.endif
+
+USE_MAGIC?= yes
+.if defined(MKMAGIC) && ${MKMAGIC} == "no"
+USE_MAGIC:= no
+.endif
+
+USE_ASR?= yes
+.if defined(MKASR) && ${MKASR} == "no"
+USE_ASR:= no
+.endif
 
 #
 # USE_* options which default to "yes".
