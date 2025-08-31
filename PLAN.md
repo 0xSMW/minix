@@ -78,6 +78,9 @@ Plan updates based on the above:
   - Early page tables (TTBRs), memory map, identity map for early boot, switch to kernel VA layout.
 - [ ] Interrupts & timer
   - GICv2/v3 support (start with GICv2 on QEMU virt), generic ARM timer (cntvct/cnthp), IRQ routing.
+- [ ] Device tree (FDT) support
+  - Integrate libfdt and parse QEMU/UEFI-provided DTBs for hardware discovery.
+  - Mirrors NetBSD's GENERIC64 approach using 64-bit device trees to span multiple boards.
 - [ ] Context switching & traps
   - User/kernel mode transitions, signal delivery/return, copyin/copyout.
 - [ ] SMP (optional later)
@@ -88,6 +91,7 @@ Plan updates based on the above:
 
 - [ ] QEMU `virt` machine as the reference platform
   - Drivers: PL011 UART for console, virtio‑blk, virtio‑net (later), generic RTC if needed.
+  - Use `qemu-system-aarch64 -M virt` as the baseline emulation command.
   - PSCI for power management calls.
 - [ ] Apple Silicon Parallels VM profile
   - Validate UEFI boot, expose virtio devices similarly; confirm console path.
@@ -108,6 +112,7 @@ Plan updates based on the above:
   - Option B: Custom EFI app that locates and loads the MINIX ELF kernel and modules and sets up a bootinfo structure.
 - [ ] Image builder adaptations
   - Update `releasetools/arm64_efi_image.sh` and `image.functions` to write the correct loader and config (GRUB cfg or start.efi) for AArch64.
+  - Include a 64-bit `virt.dtb` in EFI images and ensure the loader passes it to the kernel.
   - Acceptance: `minix_arm64_efi.img` boots to the MINIX kernel on QEMU/Parallels.
 
 ## Phase 8 — Distribution & Sets
@@ -128,6 +133,8 @@ Plan updates based on the above:
   - Produce a VM template; verify console, disk, and network (virtio/net if available).
 - [ ] Automated builds on macOS (arm64)
   - Scripted toolchain + userland + image build; retain logs/artifacts.
+- [ ] Automated QEMU tests with anita
+  - Adapt NetBSD's anita harness to boot arm64 images and capture console output.
 
 ## Phase 10 — Cleanup & Hardening
 
