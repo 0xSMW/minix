@@ -16,6 +16,10 @@ set -e
 # Image contents
 : ${SETS="minix-base minix-comp minix-games minix-man minix-tests tests"}
 : ${IMG=minix_arm64_efi.img}
+:
+# Do not try to (re)build the entire Minix source tree from this script.
+# We only assemble an image scaffold from whatever sets/kernels are present.
+CREATE_IMAGE_ONLY=1
 
 # EFI partition size (bytes)
 : ${EFI_SIZE=$(( 64*(2**20) ))}
@@ -33,6 +37,13 @@ fi
 
 # Environment setup
 . releasetools/image.defaults
+
+# When creating an image scaffold only, tolerate missing DESTDIR/RELEASEDIR
+if [ ${CREATE_IMAGE_ONLY} -eq 1 ]
+then
+    mkdir -p "${DESTDIR}" "${RELEASEDIR}" || true
+fi
+
 . releasetools/image.functions
 
 echo "Building work directory..."
@@ -127,4 +138,3 @@ echo "qemu-system-aarch64 -machine virt -cpu cortex-a57 -m 1024 \\
       -device virtio-blk-pci,drive=hd0 -serial mon:stdio"
 echo ""
 echo "Parallels (Apple Silicon): create a new VM with a blank disk, then replace its disk with $(pwd)/${IMG}. Ensure UEFI boot is enabled."
-
