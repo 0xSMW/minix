@@ -104,7 +104,7 @@
 #
 
 .if ${.MAKEFLAGS:M${.CURDIR}/share/mk} == ""
-.MAKEFLAGS: -m ${.CURDIR}/share/mk
+	.MAKEFLAGS: -m ${.CURDIR}/share/mk
 .endif
 
 #
@@ -568,6 +568,19 @@ do-installsrc:
 #
 dependall-distrib depend-distrib all-distrib: .PHONY
 	@true
+
+#
+# Convenience target: end-to-end Apple Silicon (ARM64) build + image
+# Builds evbarm64 tools and distribution, then creates an ARM64 EFI disk image.
+#
+.PHONY: apple-silicon
+apple-silicon:
+	@echo "[apple-silicon] Building evbarm64 tools..."
+	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no tools
+	@echo "[apple-silicon] Building evbarm64 distribution..."
+	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no distribution
+	@echo "[apple-silicon] Creating ARM64 EFI image..."
+	bash ./releasetools/arm64_efi_image.sh
 
 .include <bsd.obj.mk>
 .include <bsd.kernobj.mk>
