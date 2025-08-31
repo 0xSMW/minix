@@ -11,6 +11,7 @@ set -e
 
 : ${ARCH=evbarm64-el}
 : ${OBJ=../obj.${ARCH}}
+: ${TOOLCHAIN_TRIPLET=aarch64-elf32-minix-}
 : ${BUILDSH=build.sh}
 
 # Image contents

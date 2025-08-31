@@ -141,8 +141,16 @@ _SUBDIR+=	libexec sbin usr.bin
 _SUBDIR+=	usr.sbin share sys etc tests compat
 _SUBDIR+=	.WAIT rescue .WAIT distrib regress
 .if defined(__MINIX)
-# the minix subdir depends on some other things (e.g. lib/) 
+# For architectures without a Minix kernel port (e.g., aarch64), allow
+# skipping the Minix-specific subtree to let NetBSD userland distribution
+# build succeed. Set MKMINIX=no to disable, or auto-disable for aarch64.
+.if defined(MKMINIX)
+.  if ${MKMINIX} != "no"
 _SUBDIR+=	.WAIT minix
+.  endif
+.elif ${MACHINE_ARCH} != "aarch64"
+_SUBDIR+=	.WAIT minix
+.endif
 .endif # defined(__MINIX)
 
 .for dir in ${_SUBDIR}
