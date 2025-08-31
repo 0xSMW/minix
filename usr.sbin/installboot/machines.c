@@ -47,8 +47,6 @@ __RCSID("$NetBSD: machines.c,v 1.39 2014/02/24 07:23:44 skrll Exp $");
  * A lot simpler that conditionally including the definitions themselves.
  */
 struct ib_mach
-    ib_mach_alpha,
-    ib_mach_amd64,
     ib_mach_amiga,
     ib_mach_emips,
     ib_mach_ews4800mips,
