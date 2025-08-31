@@ -1,6 +1,31 @@
-% AArch64 (Apple Silicon) Migration Plan for MINIX
+# AArch64 (Apple Silicon) Migration Plan for MINIX
 
 This plan tracks the work required to bring up a functional AArch64 (arm64) port of MINIX that builds and runs under UEFI on Apple Silicon and QEMU’s `virt` machine. It’s organized in phases with concrete tasks and acceptance criteria.
+
+## Build Issues (make apple-silicon 2025-08-31)
+
+- [ ] Missing AArch64 arch headers: the include phase descends into `minix/include/arch/aarch64`, which does not exist yet, causing a hard failure. This comes from unconditional MINIX include wiring in `include/Makefile:45` which always adds `../minix/include` when `__MINIX` is set.
+      - Symptom: `sh: line 1: cd: minix/include/arch/aarch64: No such file or directory`
+      - Action: gate MINIX include for AArch64 until headers land. Example: only add `../minix/include` when `${MACHINE_ARCH} != "aarch64"` or when `${MKMINIX} != "no"`.
+- [ ] Malformed conditional in libsys: `minix/lib/libsys/makefile:109` tests `${MKPCI}` directly, which is undefined for AArch64, leading to a bmake parse error.
+      - Symptom: `Malformed conditional (${MKPCI} != "no")`
+      - Action: switch to `${USE_PCI}` or guard `${MKPCI}` with `defined(MKPCI)`. Example: `.if ${USE_PCI} != "no"` or `.if defined(MKPCI) && ${MKPCI} != "no"`.
+- [ ] Toolchain triple mismatch for AArch64: the build produces tools with the prefix `aarch64-elf32-minix-` due to `share/mk/bsd.own.mk:1080` forcing `-elf32-minix` for all MINIX builds.
+      - Impact: wrong ABI naming for 64‑bit AArch64; will complicate linker/emulation selection and future runtime.
+      - Action: teach `bsd.own.mk` to use `aarch64-elf64-minix` when `${MACHINE_ARCH} == aarch64`. Also update `releasetools/arm64_efi_image.sh` (`TOOLCHAIN_TRIPLET`) accordingly.
+- [ ] Build target not skipping MINIX on AArch64: `Makefile:584` target `apple-silicon` runs `./build.sh ... -m evbarm64-el` without disabling the MINIX subtree, so the tree still descends into `minix/*` and fails early.
+      - Action: pass `-V MKMINIX=no` to both `tools` and `distribution` invocations as a short‑term workaround, aligned with the top‑level gating intent. Long‑term: remove this once AArch64 MINIX headers and libsys exist.
+
+Plan updates based on the above:
+
+- Phase 1 — Build System & Toolchain
+  - [ ] Add AArch64‑specific gating in `include/Makefile` to skip `../minix/include` when `${MACHINE_ARCH} == aarch64` or when `MKMINIX=no`.
+  - [ ] Replace unguarded `MK*` checks in MINIX userland makefiles with `USE_*` (e.g., `USE_PCI`) or `defined()` guards; start with `minix/lib/libsys/makefile`.
+  - [ ] Set `MACHINE_GNU_PLATFORM` to `aarch64-elf64-minix` for AArch64 in `share/mk/bsd.own.mk` and propagate to image tools.
+- Convenience target
+  - [ ] Update `apple-silicon` to add `-V MKMINIX=no` to both `build.sh` lines to allow NetBSD userland + image scaffolding to complete pending AArch64 MINIX.
+
+
 
 ## Phase 0 — Orientation & Scope
 
@@ -136,4 +161,3 @@ This plan tracks the work required to bring up a functional AArch64 (arm64) port
 - We will keep using Clang/LLD where possible on macOS; binutils/BFD are built for the cross target only.
 - If GRUB path becomes burdensome on arm64, pivot to a tiny custom EFI loader for MINIX.
 - Keep changes minimal and gated to AArch64 until the port matures; do not regress i386/earm.
-
