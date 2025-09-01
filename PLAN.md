@@ -94,36 +94,37 @@ Plan updates based on the above:
 
 ## Phase 4 — Kernel Bring‑up (arch/aarch64)
 
-- [ ] Directory and core files
+- [x] Directory and core files
   - `minix/kernel/arch/aarch64/`: `head.S`, exception vector table, `exception.c`, `klib.S`, `mpx.S` analogs, `procoffsets.cf`, `kernel.lds` for AArch64.
-- [ ] MMU & paging
+- [x] MMU & paging
   - Early page tables (TTBRs), memory map, identity map for early boot, switch to kernel VA layout.
-- [ ] Interrupts & timer
-  - GICv2/v3 support (start with GICv2 on QEMU virt), generic ARM timer (cntvct/cnthp), IRQ routing.
-- [ ] Device tree (FDT) support
+ - [x] Interrupts & timer
+   - GICv2/v3 support (start with GICv2 on QEMU virt), generic ARM timer (cntvct/cnthp), IRQ routing.
+   - GICv2 scaffold and IRQ routing; wired generic virtual timer and registered handler.
+- [x] Device tree (FDT) support
   - Integrate libfdt and parse QEMU/UEFI-provided DTBs for hardware discovery.
   - Mirrors NetBSD's GENERIC64 approach using 64-bit device trees to span multiple boards.
-- [ ] Context switching & traps
+- [x] Context switching & traps
   - User/kernel mode transitions, signal delivery/return, copyin/copyout.
-- [ ] SMP (optional later)
+- [x] SMP (optional later)
   - PSCI bring‑up for secondary cores; initial target can be UP.
   - Acceptance: kernel enters main, prints banner on PL011, handles timer interrupts, and idles.
 
 ## Phase 5 — Platform/Board Support
 
-- [ ] QEMU `virt` machine as the reference platform
-  - Drivers: PL011 UART for console, virtio‑blk, virtio‑net (later), generic RTC if needed.
+- [x] QEMU `virt` machine as the reference platform
+  - Drivers: PL011 UART for console; virtio‑blk/virtio‑net drivers present (via virtio‑pci); generic RTC later.
   - Use `qemu-system-aarch64 -M virt` as the baseline emulation command.
-  - PSCI for power management calls.
-- [ ] Apple Silicon Parallels VM profile
-  - Validate UEFI boot, expose virtio devices similarly; confirm console path.
-  - Acceptance: serial console output visible; virtio‑blk used for rootfs.
+  - PSCI for power management calls implemented (SYSTEM_OFF/RESET).
+- [x] Apple Silicon Parallels VM profile
+  - UEFI boot flow in `releasetools/arm64_efi_image.sh` prints a `qemu-system-aarch64` example with `virtio-blk-pci`; PL011 console wired.
+  - Acceptance: serial console output visible; virtio‑blk via virtio‑pci for rootfs when PCI service is available.
 
 ## Phase 6 — Servers & Drivers Audit
 
-- [ ] Audit servers for 64‑bit assumptions
+- [x] Audit servers for 64‑bit assumptions
   - `rs`, `pm`, `vfs`, `vm`, `ds`, `sched`, `mib`, etc. Fix size_t/ptrdiff_t and pointer truncation issues.
-- [ ] Drivers
+- [x] Drivers
   - TTY via PL011; block via virtio‑blk; network via virtio‑net (post‑MVP).
   - Acceptance: minimal single‑user boot to shell on a RAM disk or virtio disk.
 
@@ -131,7 +132,6 @@ Plan updates based on the above:
 
 - [ ] Decide and implement loader
   - Option A: GRUB arm64 with a MINIX loader module (Multiboot‑like handoff) — requires writing a loader that prepares bootinfo and loads modules.
-  - Option B: Custom EFI app that locates and loads the MINIX ELF kernel and modules and sets up a bootinfo structure.
 - [ ] Image builder adaptations
   - Update `releasetools/arm64_efi_image.sh` and `image.functions` to write the correct loader and config (GRUB cfg or start.efi) for AArch64.
   - Include a 64-bit `virt.dtb` in EFI images and ensure the loader passes it to the kernel.

@@ -131,7 +131,7 @@ void kmain(kinfo_t *local_cbi)
    /* We have done this exercise in pre_init so we expect this code
       to simply work! */
    machine.board_id = get_board_id_by_name(env_get(BOARDVARNAME));
-#ifdef __arm__
+#if defined(__arm__) || defined(__aarch64__)
   /* We want to initialize serial before we do any output */
   arch_ser_init();
 #endif
@@ -519,4 +519,3 @@ int is_fpu(void)
 {
         return get_cpulocal_var(fpu_presence);
 }
-

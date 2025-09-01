@@ -96,6 +96,19 @@ PROGRAMS+=		mmc
 dir.mmc:=	minix/drivers/storage/mmc
 .endif # ${MACHINE_ARCH} == "earm"
 
+.if ${MACHINE_ARCH} == "aarch64"
+# Include PCI server and virtio block driver for QEMU virt
+PROGRAMS+=		pci
+dir.pci:=	minix/drivers/bus/pci
+.if ${MKSMALL} != "yes"
+PROGRAMS+=		virtio_blk
+dir.virtio_blk:= minix/drivers/storage/virtio_blk
+# Include ext2 to mount rootfs on virtio disk if needed
+PROGRAMS+=		ext2
+dir.ext2:=	minix/fs/ext2
+.endif
+.endif # ${MACHINE_ARCH} == "aarch64"
+
 .if ${LDSTATIC} == "-dynamic"
 RAMDISK_DYNAMIC=	 1
 PROGRAMS+=		ld.elf_so

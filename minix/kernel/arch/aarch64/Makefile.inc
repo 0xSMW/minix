@@ -8,7 +8,20 @@ HERE=${.CURDIR}/arch/${MACHINE_ARCH}
 SRCS+= \
 	head.S \
 	vectors.S \
-	exception.c
+	exception.c \
+	arch_system.c \
+	arch_clock.c \
+	direct_tty_utils.c \
+	klib.S \
+	mpx.S \
+	hw_intr.c \
+	gic.c \
+	bsp_serial.c \
+	intr.c \
+	arch_smp.c \
+	arch_reset.c
+	SRCS+= \
+	dt.c
 
 # Generate register/offset helpers from the AArch64 userland stackframe
 SRCS+= procoffsets.h
@@ -23,4 +36,3 @@ procoffsets.h: ${PROCOFFSETSCF} kernel.h proc.h stackframe.h archtypes.h
 		${CPPFLAGS} ${PROF} ${${USE_BITCODE:Uno} == "yes":? -fno-lto:} \
 		${GENASSYM_CPPFLAGS} >$@.tmp && \
 	mv -f $@.tmp $@
-
