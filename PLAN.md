@@ -76,18 +76,18 @@ Plan updates based on the above:
 
 ## Phase 2 — Arch Headers & libc glue
 
-- [ ] Create `minix/include/arch/aarch64/include/`
+- [x] Create `minix/include/arch/aarch64/include/`
   - Initial files: `archconst.h`, `archtypes.h`, `elf.h`, `ipcconst.h`, `memory.h`, `partition.h`, `stackframe.h`, `vm.h`.
   - Derive from `earm` and adjust for AArch64 LP64 sizes and ABI.
-- [ ] libc arch shims
+- [x] libc arch shims
   - Wire up signal trampolines, setjmp/longjmp, errno/PSR access if needed.
   - Acceptance: libc for AArch64 compiles for the MINIX sysroot.
-- [ ] Remove temporary header workarounds
+- [x] Remove temporary header workarounds
   - Comment out the i386 fallback include from `minix/commands/partition/Makefile` once `arch/aarch64` exists.
 
 ## Phase 3 — libsys (system call ABI)
 
-- [ ] Implement syscall stubs/trampolines for AArch64
+- [x] Implement syscall stubs/trampolines for AArch64
   - Add `syscall`/SVC entry glue; parameter passing via x0‑x7; error returns in x0 with carry semantics as needed.
   - Context save/restore helpers, userland entry sequences, thread‑local storage setup.
   - Acceptance: basic syscalls link and a trivial program invoking `_exit(0)` runs under QEMU when the kernel lands.

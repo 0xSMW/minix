@@ -72,6 +72,23 @@ if [ -z "${JOBS}" ]; then
   JOBS=$( (sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4) )
 fi
 
+# Sanitize PATH to only absolute components (build.sh requirement)
+orig_path=${PATH:-}
+sanitized=""
+IFS=":"
+for comp in $orig_path; do
+  case "$comp" in
+    /*) sanitized=${sanitized:+"$sanitized:"}$comp ;;
+    *) : ;; # drop relative/empty comps
+  esac
+done
+unset IFS
+# Ensure minimal baseline paths are present
+for base in /usr/bin /bin /usr/sbin /sbin; do
+  case ":$sanitized:" in *":$base:"*) : ;; *) sanitized=${sanitized:+"$sanitized:"}$base;; esac
+done
+export PATH="$sanitized"
+
 # Map arch -> MACHINE and image tool
 case "${ARCH}" in
   arm64|aarch64)
@@ -94,15 +111,18 @@ if [ ! -f build.sh ]; then
 fi
 
 echo "==> Building tools for ${MACHINE} (jobs: ${JOBS})"
-./build.sh -U -u ${CLEAN:+-r} -j"${JOBS}" -m "${MACHINE}" tools
+./build.sh -U -u ${CLEAN:+-r} -j"${JOBS}" -m "${MACHINE}" \
+  -V MKINFO=no tools
 
 echo "==> Building distribution for ${MACHINE}"
-./build.sh -U -u -j"${JOBS}" -m "${MACHINE}" distribution
+./build.sh -U -u -j"${JOBS}" -m "${MACHINE}" \
+  -V MKINFO=no distribution
 
 # When creating an image, ensure release sets exist (image scripts expect sets)
 if [ ${CREATE_IMAGE} -eq 1 ]; then
   echo "==> Creating release sets for ${MACHINE}"
-  ./build.sh -U -u -j"${JOBS}" -m "${MACHINE}" release
+  ./build.sh -U -u -j"${JOBS}" -m "${MACHINE}" \
+    -V MKINFO=no release
 
   echo "==> Generating image via ${IMAGE_SCRIPT}"
   "${IMAGE_SCRIPT}"
@@ -111,4 +131,3 @@ else
 fi
 
 echo "==> Done"
-

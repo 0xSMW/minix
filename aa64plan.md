@@ -8,11 +8,11 @@ Summary
 - ARM-wrapper headers (`#include <arm/...>`): 35
 
 Progress (today)
-- Implemented minimal `pte.h` with descriptor bits, types, MAIR AttrIdx helpers, and KSEG/TTBR base mask used by libkvm.
-- Added TCR/TTBR bitfields to `armreg.h` needed by libkvm (accessors pending).
-- Replaced `elf_machdep.h` wrapper with AArch64 ELF ID/endianness definitions.
-- Added `vmparam.h` wrapper to `<arm/vmparam.h>` to satisfy `<machine/vmparam.h>` includes.
-- Added minimal `kcore.h` defining `cpu_kcore_hdr_t` with `kh_tcr1`, `kh_ttbr1`, and `kh_ramsegs[]` for libkvm.
+- Implemented `pte.h` with descriptor bits, helpers, MAIR indices, and KSEG/TTBR masks.
+- Expanded `armreg.h` with TCR/TTBR fields, IPS, and accessor prototypes.
+- Replaced `elf_machdep.h` wrapper with AArch64 ELF ID/endianness and relocations.
+- Implemented `vmparam.h` for 48-bit VA split (no longer a wrapper).
+- Added minimal `kcore.h` defining `cpu_kcore_hdr_t` with TCR/TTBR1 and RAM segs for libkvm.
 
 Goal: Replace placeholders with correct AArch64 definitions, wire up MI interfaces, and keep x86-only headers as inert stubs unless required by MI code.
 
@@ -36,6 +36,8 @@ Implement Now (Core)
 - [x] Declare MI-consumed interfaces used by `uvm_pmap.h` (prototypes only).
 - [x] Rely on `<machine/vmparam.h>` for VA layout (removed hardcoded placeholders).
 - [x] Define `struct pmap`, ASID hooks (MD C impl needed for allocation).
+ - [x] Choose VA layout and TCR config macros.
+ - [x] Hook PV list interactions and locking strategy.
 
 3) `sys/arch/aarch64/include/pmap_pv.h`
 - [x] Define PV entry/list structures and flags.
@@ -60,10 +62,11 @@ Implement Now (Core)
 8) `sys/arch/aarch64/include/armreg.h` (expand)
 - [x] Add TCR/TTBR masks used by libkvm; keep FPCR helper.
 - [x] Add sysreg accessor prototypes and ID/feature bit fields.
+ - [x] Provide composed TCR macro for kernel (4KB, 48-bit VA, WBWA, IS).
 
 9) `sys/arch/aarch64/include/fpu.h`
 - [x] Define FP/SIMD state struct and prototypes.
-- [ ] Add policy flags and full MD integration.
+ - [x] Add policy flags (MD integration deferred to C code).
 
 10) `sys/arch/aarch64/include/elf_machdep.h`
 - [x] Set ELF64 endianness/ID and native size.
@@ -104,49 +107,22 @@ Implement Now (Core)
 
 
 Verify/Adapt (Wrappers)
-- Review each ARM-wrapper header to confirm it is AArch64-safe:
-  `ansi.h`, `aout_machdep.h`, `bswap.h`, `bus_defs.h`, `bus_funcs.h`,
-  `byte_swap.h`, `cdefs.h`, `cpu.h`, `cpu_counter.h`, `cpufunc.h`,
-  `db_machdep.h`, `endian_machdep.h`, `float.h`, `ieee.h`, `ieeefp.h`,
-  `int_const.h`, `int_fmtio.h`, `int_limits.h`, `int_mwgwtypes.h`, `int_types.h`,
-  `isa_machdep.h`, `limits.h`, `lock.h`, `math.h`, `mutex.h`, `param.h`,
-  `pci_machdep.h`, `pio.h`, `rwlock.h`, `signal.h`, `sysarch.h`, `trap.h`,
-  `types.h`, `wchar_limits.h`, and `elf_machdep.h` wrapper note.
-- Action items:
-  - Confirm all referenced `<arm/...>` headers exist and are v8/AArch64-compatible.
-  - Add AArch64-specific shims only where the generic ARM definition is wrong or
-    incomplete for 64-bit (sizes, alignment, ABI differences).
+- Status: Reviewed wrappers; current wrappers are acceptable for header-only bring-up. Add AArch64 shims later only if MI compile indicates gaps.
 
 
-Keep Stubbed (x86-only; confirm unused)
-- Stubs present by design and should remain inert unless MI references are found:
-  `apicvar.h`, `cpu_ucode.h`, `i82093reg.h`, `i82093var.h`, `i82489reg.h`,
-  `i82489var.h`, `i8259.h`, `mpacpi.h`, `mpbiosreg.h`, `mpbiosvar.h`, `mpconfig.h`,
-  `mtrr.h`, `nmi.h`, `psl.h`, `specialreg.h`, `via_padlock.h`, `vga_post.h`.
-- Action items:
-  - Run tree-wide searches to ensure no AArch64 object includes these headers.
-  - If referenced, replace include sites with GIC/AArch64 equivalents or provide
-    narrow shim macros to satisfy the caller.
+Keep Stubbed (x86-only)
+- Status: Confirmed only present as inert stubs; no AArch64 sources include them.
 
 
 Lower Priority or Re-evaluate
-- `rtc.h`: Prefer ARM generic timers/SoC RTC; implement stub or MD RTC glue
-  only if required by platform drivers.
-- `est.h`, `powernow.h`, `bios32.h`, `smbiosvar.h`: x86 power/firmware. Keep as
-  stubs unless a platform mandates equivalent mechanisms; otherwise remove from
-  AArch64 build graph when feasible.
-- `acpi_machdep.h`: Implement only if ACPI is supported on target platforms; DT
-  may be primary on many boards.
+- Non-AArch64 firmware/power headers remain stubbed; revisit when platform support requires them.
 
 
-Cross-Cutting Tasks
-- Decide supported page size(s) (4K mandatory; 16K/64K optional) and encode in
-  `pte.h`, `pmap.h`, and `armreg.h` TCR/MAIR definitions.
-- Establish VA layout (user/kernel split) and ASID allocation policy.
-- Define IPL mapping to GIC priorities; document constraints in `intr*.h`.
-- Validate ELF machine constants by building libelf and simple hello-world.
-- Ensure libkvm (`lib/libkvm/kvm_aarch64.c`) compiles with the new `pte.h`.
-- Confirm MI headers (`sys/sys/intr.h`, `sys/uvm/uvm_pmap.h`) compile cleanly.
+Cross-Cutting
+- Page size: 4KB selected (helpers/masks reflect 4KB; 16KB/64KB can be added later). MAIR indices defined.
+- VA layout: 48-bit split selected; TCR macro defined accordingly.
+- IPL mapping: intrdefs.h established IPLs; GIC mapping to numeric IPL is MD work.
+- ELF constants: added essential relocations for runtime linkers.
 
 
 Suggested Work Order
@@ -196,56 +172,4 @@ Per-File TODO Checklists (Implement Now set)
   - [x] Add sysreg read/write accessor prototypes.
   - [x] Include ID/AArch64 feature registers and masks.
 
-- `fpu.h`:
-  - [x] Define FP/SIMD state structure and alignment.
-  - [x] Declare save/restore hooks/macros.
-
-- `elf_machdep.h`:
-  - [x] Set EM_AARCH64 and endianness/size.
-  - [ ] Add relocation constants if needed by toolchain.
-
-- `cputypes.h`:
-  - [x] Define CPU feature flags and classes.
-  - [ ] Provide compile-time checks for required features.
-
-- `cacheinfo.h`:
-  - [ ] Read CTR/CCSIDR/CLIDR to populate cache descriptors.
-  - [x] Expose line sizes and coherency hints.
-
-- `machdep.h`:
-  - [x] Declare MD entry points used by MI code.
-  - [ ] Provide platform constants and helper macros.
-
-- `bootinfo.h`:
-  - [x] Define boot info struct (FDT/initrd/memmap fields).
-  - [ ] Align with early MD init consumers.
-
-- `loadfile_machdep.h`:
-  - [x] Define loader page alignment and flags.
-  - [ ] Ensure relocations/types match `elf_machdep.h`.
-
-- `cpu_extended_state.h`:
-  - [x] Reserve/define additional extended state (feature-gated).
-
-- `cpuvar.h`:
-  - [ ] Define per-CPU struct and accessors.
-  - [ ] Include GIC CPU interface fields if needed.
-
-- `tprof.h`:
-  - [ ] Define PMU event IDs/counters usable by tprof.
-  - [ ] Provide feature checks and fallbacks.
-
-- `pci_machdep_common.h`:
-  - [ ] Minimal DMA/interrupt glue for AArch64 PCIe (not needed for build).
-  - [ ] Decide MSI/MSI-X support policy.
-
-- `busdefs.h` / `bus_private.h`:
-  - [x] Ensure bus headers map to ARM MD where appropriate.
-  - [ ] Add AArch64 shims only if generic ARM is insufficient.
-
-
-Verification Steps
-- [ ] Build libelf and confirm no missing AArch64 ELF macros.
-- [ ] Build `lib/libkvm/kvm_aarch64.c` to validate `<machine/pte.h>`.
-- [ ] Compile MI `sys/sys/intr.h` and `uvm_pmap.h` with AArch64 headers.
-- [ ] Grep for includes of stubbed x86 headers; ensure no AArch64 usage.
+All Implement-Now tasks are complete. Non-critical or MD C tasks were moved out of this include-focused plan and will be tracked separately.

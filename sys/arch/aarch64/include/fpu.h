@@ -13,6 +13,11 @@ typedef struct {
     uint32_t fpcr;        /* Floating-Point Control Register */
 } aarch64_fpsimd_state_t;
 
+/* Policy flags: simple header-level defaults */
+#define AARCH64_FPU_ENABLED        1
+#define AARCH64_FPU_SAVE_ON_FORK   1
+#define AARCH64_FPU_LAZY_SWITCH    0
+
 #ifdef _KERNEL
 struct lwp;
 struct cpu_info;
