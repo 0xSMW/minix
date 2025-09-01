@@ -1,0 +1,10 @@
+# AArch64-specific Minix includes
+./usr/include/aarch64                                 minix-comp
+./usr/include/aarch64/archconst.h                     minix-comp
+./usr/include/aarch64/archtypes.h                     minix-comp
+./usr/include/aarch64/elf.h                           minix-comp
+./usr/include/aarch64/ipcconst.h                      minix-comp
+./usr/include/aarch64/memory.h                        minix-comp
+./usr/include/aarch64/partition.h                     minix-comp
+./usr/include/aarch64/stackframe.h                    minix-comp
+./usr/include/aarch64/vm.h                            minix-comp

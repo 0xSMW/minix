@@ -48,10 +48,8 @@ INCSDIR=	/usr/include
 #
 # Gate MINIX headers on AArch64 or when MKMINIX is explicitly disabled,
 # to avoid descending into non-existent arch headers during include builds.
-.  if ${MACHINE_ARCH} != "aarch64"
-.    if !defined(MKMINIX) || ${MKMINIX} != "no"
+.  if !defined(MKMINIX) || ${MKMINIX} != "no"
 SUBDIR+=	../minix/include
-.    endif
 .  endif
 .else
 SUBDIR=		rpc

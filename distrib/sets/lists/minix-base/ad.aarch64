@@ -1,0 +1,7 @@
+# AArch64 platform services and libraries
+./service/pci                                           minix-base
+./service/virtio_blk                                    minix-base
+./usr/lib/libvirtio.a                                   minix-base
+./usr/lib/libvirtio_pic.a                               minix-base
+# Optional: virtio-net can be enabled later
+# ./service/virtio_net                                  minix-base

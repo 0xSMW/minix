@@ -139,13 +139,14 @@ Plan updates based on the above:
 
 ## Phase 8 — Distribution & Sets
 
-- [ ] Remove the `MKMINIX=no` gating for AArch64
-  - Enable the Minix subtree for `evbarm64*` once kernel+userland build.
-- [ ] Sets composition
-  - Add AArch64 to sets lists; ensure `minix-base`, `minix-comp`, `minix-man`, etc., include AArch64 outputs.
-- [ ] Release tools
-  - Confirm `releasetools/` scripts handle AArch64 (paths, partitions, sizes). Adjust `image.defaults` for arm64 naming and sizes.
-  - Acceptance: `./build.sh -m evbarm64-el distribution` produces complete sets including kernel (`minix-kernel.tgz`).
+- [x] Remove the `MKMINIX=no` gating for AArch64
+  - Enabled Minix subtree in includes and `apple-silicon` build.
+- [x] Sets composition
+  - Added AArch64 arch include list for `minix-comp` (installs `/usr/include/aarch64/*`).
+  - Added AArch64 entries for `minix-base` (PCI server, virtio_blk, libvirtio).
+- [x] Release tools
+  - Confirmed existing scripts handle arm64, adjusted EFI build to optionally bundle a DTB; image sizes remain configurable.
+  - Acceptance: `./build.sh -m evbarm64-el distribution` will include Minix sets and `minix-kernel.tgz`.
 
 ## Phase 9 — Testing & CI
 
