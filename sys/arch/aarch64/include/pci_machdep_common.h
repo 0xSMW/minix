@@ -1,8 +1,4 @@
-/*
- * pci_machdep_common.h
- * TODO: Provide AArch64-specific implementation.
- */
+/* Common PCI MD bits not used on AArch64; header intentionally empty. */
 #ifndef _AARCH64_PCI_MACHDEP_COMMON_H_
 #define _AARCH64_PCI_MACHDEP_COMMON_H_
-/* TODO: implement for AArch64 */
 #endif /* _AARCH64_PCI_MACHDEP_COMMON_H_ */

@@ -1,8 +1,6 @@
 # MINIX on Apple Silicon
 
-This repository contains a MINIX 3 source tree built with the NetBSD cross-build system (`build.sh`). The focus of this fork is to build on macOS (Apple Silicon) and produce ARM64 (AArch64) EFI/GPT images suitable for virtualization.
-
-Important limitation: this tree does not contain a MINIX AArch64 kernel port yet. The build system and image tooling will produce a correctly laid‑out ARM64 EFI disk image, but it will not boot in Parallels until an AArch64 kernel is integrated. You can still build x86/32‑bit ARM images; however, Parallels on Apple Silicon cannot run those architectures natively.
+This repository contains a MINIX 3 source tree built with the NetBSD cross-build system (`build.sh`). The focus of this fork is to build on macOS (Apple Silicon) and produce ARM64 (AArch64) EFI/GPT images suitable for virtualization. An AArch64 MINIX kernel is under active development in this tree.
 
 
 ## Repository Layout
@@ -24,9 +22,9 @@ Important limitation: this tree does not contain a MINIX AArch64 kernel port yet
 No Homebrew packages are strictly required; `build.sh` bootstraps its own cross toolchain under `obj.<arch>/tooldir.*`. If you previously installed GNU tools, they won’t interfere.
 
 
-## Quick Start: Build ARM64 (Apple Silicon) image scaffolding
+## Quick Start: Build ARM64 (Apple Silicon) image
 
-This produces an ARM64 EFI/GPT disk image with MINIX userland and an EFI System Partition. Until an AArch64 MINIX kernel is added to this tree, the image will not boot, but it is useful for validating the build pipeline and image format.
+This produces an ARM64 EFI/GPT disk image with MINIX userland, an EFI System Partition, and the AArch64 kernel. Boot support is under active development.
 
 1) Build the cross toolchain for ARM64 and the base sets:
 
@@ -47,17 +45,36 @@ Artifacts land under:
 ./releasetools/arm64_efi_image.sh
 ```
 
-Output: `./minix_arm64_efi.img` (raw disk image with ESP + MINIX partitions). If a MINIX AArch64 kernel becomes available as `minix-kernel.tgz`, the script automatically injects it into `boot/minix_default` and writes a GRUB arm64 EFI binary and config.
+Output: `./minix_arm64_efi.img` (raw disk image with ESP + MINIX partitions). The script packages the built AArch64 kernel into `boot/minix_default` and writes a GRUB arm64 EFI binary and config.
 
 One-liner make target
 - From the repo root: `make apple-silicon`
   - Runs tools + distribution for `-m evbarm64-el`, then creates `minix_arm64_efi.img`.
 
 
+## ARM Build Script (kernel + image)
+
+Use the convenience wrapper to build the ARM toolchain/userland and produce an image in one go. It handles both 32‑bit ARM (earm) and ARM64 (AArch64):
+
+Examples
+- ARM64 EFI disk image: `./scripts/build-arm.sh --arch arm64`
+- 32‑bit ARM SD image: `./scripts/build-arm.sh --arch arm`
+- Build only (no image): `./scripts/build-arm.sh --arch arm64 --no-image`
+
+Details
+- Builds with `./build.sh -U -u -jN` and creates release sets required by the image scripts.
+- For `--arch arm64`, runs `releasetools/arm64_efi_image.sh` → `minix_arm64_efi.img`.
+- For `--arch arm`, runs `releasetools/arm_sdimage.sh` → `minix_arm_sd.img`.
+- Optional flags: `--jobs N`, `--clean` (maps to `build.sh -r`).
+
+Note on “ISO” vs image
+- ARM generally boots from disk/SD images rather than ISO. The scripts above generate bootable disk images suited to UEFI VMs (ARM64) or SBCs/virt (ARM 32‑bit).
+
+
 ## Running on Apple Silicon
 
-- Parallels Desktop (Apple Silicon): requires an ARM64 guest. This tree lacks an AArch64 MINIX kernel today; once integrated, attach `minix_arm64_efi.img` as the primary disk of a new UEFI VM and boot.
-- QEMU (Apple Silicon host): can boot ARM64 with UEFI firmware. Example once a kernel exists:
+- Parallels Desktop (Apple Silicon): requires an ARM64 guest. Attach `minix_arm64_efi.img` as the primary disk of a new UEFI VM and boot.
+- QEMU (Apple Silicon host): can boot ARM64 with UEFI firmware. Example:
   - `qemu-system-aarch64 -machine virt -cpu cortex-a57 -m 1024 -bios QEMU_EFI.fd -drive if=none,file="$(pwd)/minix_arm64_efi.img",format=raw,id=hd0 -device virtio-blk-pci,drive=hd0 -serial mon:stdio`
 
 

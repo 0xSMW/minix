@@ -1,8 +1,4 @@
-/*
- * powernow.h
- * TODO: Provide AArch64-specific implementation.
- */
+/* AMD PowerNow! (x86) not applicable on AArch64; empty header. */
 #ifndef _AARCH64_POWERNOW_H_
 #define _AARCH64_POWERNOW_H_
-/* TODO: implement for AArch64 */
 #endif /* _AARCH64_POWERNOW_H_ */

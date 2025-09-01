@@ -590,6 +590,18 @@ apple-silicon:
 	@echo "[apple-silicon] Creating ARM64 EFI image..."
 	bash ./releasetools/arm64_efi_image.sh
 
+#
+# Convenience targets: end-to-end ARM builds via scripts/build-arm.sh
+# - make arm64: AArch64 build + EFI image (evbarm64-el)
+# - make arm:   32-bit ARM build + SD image (evbearm-el)
+#
+.PHONY: arm arm64
+arm64:
+	bash ./scripts/build-arm.sh --arch arm64
+
+arm:
+	bash ./scripts/build-arm.sh --arch arm
+
 .include <bsd.obj.mk>
 .include <bsd.kernobj.mk>
 .include <bsd.subdir.mk>

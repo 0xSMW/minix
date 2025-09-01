@@ -18,4 +18,15 @@
 /* Native binary size */
 #define ARCH_ELFSIZE		64
 
+/*
+ * Processor specific relocation types (subset used by rtld and linkers)
+ */
+#define R_AARCH64_NONE       0
+#define R_AARCH64_COPY       1024
+#define R_AARCH64_GLOB_DAT   1025
+#define R_AARCH64_JUMP_SLOT  1026
+#define R_AARCH64_RELATIVE   1027
+
+#define R_TYPE(name)         __CONCAT(R_AARCH64_,name)
+
 #endif /* _AARCH64_ELF_MACHDEP_H_ */

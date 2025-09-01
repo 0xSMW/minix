@@ -1,8 +1,5 @@
-/*
- * busdefs.h
- * TODO: Provide AArch64-specific implementation.
- */
+/* Compatibility shim to the canonical bus_defs.h wrapper. */
 #ifndef _AARCH64_BUSDEFS_H_
 #define _AARCH64_BUSDEFS_H_
-/* TODO: implement for AArch64 */
+#include <arm/bus_defs.h>
 #endif /* _AARCH64_BUSDEFS_H_ */

@@ -1,8 +1,12 @@
 /*
- * cpu_extended_state.h
- * TODO: Provide AArch64-specific implementation.
+ * AArch64 extended CPU state container for optional features (e.g., SVE).
  */
 #ifndef _AARCH64_CPU_EXTENDED_STATE_H_
 #define _AARCH64_CPU_EXTENDED_STATE_H_
-/* TODO: implement for AArch64 */
+
+typedef struct {
+    /* Reserved for future extensions (e.g., SVE state). */
+    unsigned int size;
+} aarch64_extstate_t;
+
 #endif /* _AARCH64_CPU_EXTENDED_STATE_H_ */

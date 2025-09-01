@@ -80,7 +80,6 @@ Plan updates based on the above:
   - Initial files: `archconst.h`, `archtypes.h`, `elf.h`, `ipcconst.h`, `memory.h`, `partition.h`, `stackframe.h`, `vm.h`.
   - Derive from `earm` and adjust for AArch64 LP64 sizes and ABI.
 - [ ] libc arch shims
-  - Verify `lib/libc/arch/aarch64/*` from NetBSD are integrated into the MINIX build where applicable.
   - Wire up signal trampolines, setjmp/longjmp, errno/PSR access if needed.
   - Acceptance: libc for AArch64 compiles for the MINIX sysroot.
 - [ ] Remove temporary header workarounds

@@ -1,8 +1,4 @@
-/*
- * rtc.h
- * TODO: Provide AArch64-specific implementation.
- */
+/* MD RTC glue not generically defined for AArch64; keep empty. */
 #ifndef _AARCH64_RTC_H_
 #define _AARCH64_RTC_H_
-/* TODO: implement for AArch64 */
 #endif /* _AARCH64_RTC_H_ */
