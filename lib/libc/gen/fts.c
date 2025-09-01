@@ -1208,7 +1208,7 @@ fts_maxarglen(char * const *argv)
 	return (max + 1);
 }
 
-#if defined(__minix)
+#if defined(__minix) && !defined(__aarch64__)
 #if ! HAVE_NBTOOL_CONFIG_H
 #include <minix/dmap.h>
 #else
@@ -1236,7 +1236,7 @@ fts_safe_changedir(const FTS *sp, const FTSENT *p, int fd, const char *path)
 	if (fstat(fd, &sb) == -1)
 		goto bail;
 
-#if defined(__minix)
+#if defined(__minix) && !defined(__aarch64__)
 	/*
 	 * Skip the safety check on file systems where inodes are not static.
 	 * On such file systems, a file may legitimately be assigned a new
@@ -1251,7 +1251,7 @@ fts_safe_changedir(const FTS *sp, const FTSENT *p, int fd, const char *path)
 		&& major(sb.st_dev) != NONE_MAJOR) {
 #else
 	if (sb.st_ino != p->fts_ino || sb.st_dev != p->fts_dev) {
-#endif /*  defined(__minix) */
+#endif /*  defined(__minix) && !defined(__aarch64__) */
 		errno = ENOENT;
 		goto bail;
 	}

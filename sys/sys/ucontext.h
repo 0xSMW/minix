@@ -33,7 +33,11 @@
 #define _SYS_UCONTEXT_H_
 
 #include <sys/sigtypes.h>
+#if defined(__aarch64__)
+#include <aarch64/mcontext.h>
+#else
 #include <machine/mcontext.h>
+#endif
 
 typedef struct __ucontext	ucontext_t;
 

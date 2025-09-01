@@ -17,7 +17,7 @@ ARCHSUBDIR= powerpc
 .endif
 
 .if ${MACHINE_CPU} == "aarch64"
-SUBDIR= evbarm64
+SUBDIR= evbarm
 .elif ${MACHINE_CPU} == "arm"
 .if defined(__MINIX)
 SUBDIR= evbarm
@@ -34,7 +34,7 @@ SUBDIR+= ${ARCHSUBDIR}
 .endif
 .endif
 .if ${MACHINE_CPU} == "aarch64"
-SUBDIR+= arm
+SUBDIR+= arm aarch64
 .endif
 .if ${MACHINE} == sparc
 SUBDIR+= sparc64
@@ -67,8 +67,10 @@ SUBDIR+= xen
 #	x68k x86_64 xen \
 #	zaurus
 
-.if ${MACHINE_CPU} == aarch64 || ${MACHINE_CPU} == "arm"
-INCSYMLINKS= ${MACHINE_CPU} /usr/include/machine
+.if ${MACHINE_CPU} == "aarch64"
+INCSYMLINKS= aarch64 /usr/include/machine
+.elif ${MACHINE_CPU} == "arm"
+INCSYMLINKS= arm /usr/include/machine
 .else
 INCSYMLINKS= ${MACHINE} /usr/include/machine
 .endif

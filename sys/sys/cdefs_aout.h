@@ -66,6 +66,12 @@
 #define	__warn_references(sym,msg)
 #endif /* __GNUC__ */
 
+/* AArch64 assemblers (and Clang IAS) do not support .stabs; disable warnings */
+#if defined(__aarch64__)
+#undef __warn_references
+#define __warn_references(sym,msg)
+#endif
+
 #if defined(__sh__)		/* XXX SH COFF */
 #undef __indr_reference(sym,alias)
 #undef __warn_references(sym,msg)

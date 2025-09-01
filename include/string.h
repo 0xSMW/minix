@@ -33,6 +33,13 @@
 
 #ifndef _STRING_H_
 #define	_STRING_H_
+
+/* Host tools on macOS: use system string to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <string.h>
+# define __NETBSD_STRING_REDIRECTED
+#endif
+#ifndef __NETBSD_STRING_REDIRECTED
 #include <machine/ansi.h>
 
 #ifdef	_BSD_SIZE_T_
@@ -124,4 +131,5 @@ __END_DECLS
 #if _FORTIFY_SOURCE > 0
 #include <ssp/string.h>
 #endif
+#endif /* !__NETBSD_STRING_REDIRECTED */
 #endif /* !defined(_STRING_H_) */

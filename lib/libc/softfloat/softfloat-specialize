@@ -32,7 +32,8 @@ this code that are retained.
 ===============================================================================
 */
 
-#include <signal.h>
+#include <sys/signal.h>
+#include <sys/siginfo.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -529,4 +530,3 @@ static float128 propagateFloat128NaN( float128 a, float128 b )
 }
 
 #endif
-

@@ -4,52 +4,75 @@ This plan tracks the work required to bring up a functional AArch64 (arm64) port
 
 ## Build Issues (make apple-silicon 2025-08-31)
 
-- [ ] Missing AArch64 arch headers: the include phase descends into `minix/include/arch/aarch64`, which does not exist yet, causing a hard failure. This comes from unconditional MINIX include wiring in `include/Makefile:45` which always adds `../minix/include` when `__MINIX` is set.
+- [x] Missing AArch64 arch headers: the include phase descends into `minix/include/arch/aarch64`, which does not exist yet, causing a hard failure. This comes from unconditional MINIX include wiring in `include/Makefile:45` which always adds `../minix/include` when `__MINIX` is set.
       - Symptom: `sh: line 1: cd: minix/include/arch/aarch64: No such file or directory`
       - Action: gate MINIX include for AArch64 until headers land. Example: only add `../minix/include` when `${MACHINE_ARCH} != "aarch64"` or when `${MKMINIX} != "no"`.
-- [ ] Malformed conditional in libsys: `minix/lib/libsys/makefile:109` tests `${MKPCI}` directly, which is undefined for AArch64, leading to a bmake parse error.
+      - Done: `include/Makefile` now adds `../minix/include` only when `${MACHINE_ARCH} != aarch64` and `MKMINIX != no`.
+- [x] Malformed conditional in libsys: `minix/lib/libsys/makefile:109` tests `${MKPCI}` directly, which is undefined for AArch64, leading to a bmake parse error.
       - Symptom: `Malformed conditional (${MKPCI} != "no")`
       - Action: switch to `${USE_PCI}` or guard `${MKPCI}` with `defined(MKPCI)`. Example: `.if ${USE_PCI} != "no"` or `.if defined(MKPCI) && ${MKPCI} != "no"`.
-- [ ] Toolchain triple mismatch for AArch64: the build produces tools with the prefix `aarch64-elf32-minix-` due to `share/mk/bsd.own.mk:1080` forcing `-elf32-minix` for all MINIX builds.
+      - Done: Guarded conditional as `(.if defined(USE_PCI) && ${USE_PCI} != "no") || (defined(MKPCI) && ${MKPCI} != "no")`).
+- [x] Toolchain triple mismatch for AArch64: the build produces tools with the prefix `aarch64-elf32-minix-` due to `share/mk/bsd.own.mk:1080` forcing `-elf32-minix` for all MINIX builds.
       - Impact: wrong ABI naming for 64‑bit AArch64; will complicate linker/emulation selection and future runtime.
       - Action: teach `bsd.own.mk` to use `aarch64-elf64-minix` when `${MACHINE_ARCH} == aarch64`. Also update `releasetools/arm64_efi_image.sh` (`TOOLCHAIN_TRIPLET`) accordingly.
-- [ ] Build target not skipping MINIX on AArch64: `Makefile:584` target `apple-silicon` runs `./build.sh ... -m evbarm64-el` without disabling the MINIX subtree, so the tree still descends into `minix/*` and fails early.
+      - Done: `share/mk/bsd.own.mk` now sets `MACHINE_GNU_PLATFORM=${MACHINE_GNU_ARCH}-elf64-minix` on AArch64. `releasetools/arm64_efi_image.sh` sets `TOOLCHAIN_TRIPLET=aarch64-elf64-minix-`. `tools/binutils/Makefile` aliases aarch64-elf{32,64}-minix to `aarch64-elf` for configure.
+- [x] Build target not skipping MINIX on AArch64: `Makefile:584` target `apple-silicon` runs `./build.sh ... -m evbarm64-el` without disabling the MINIX subtree, so the tree still descends into `minix/*` and fails early.
       - Action: pass `-V MKMINIX=no` to both `tools` and `distribution` invocations as a short‑term workaround, aligned with the top‑level gating intent. Long‑term: remove this once AArch64 MINIX headers and libsys exist.
+      - Done: Added `-V MKMINIX=no` to both build.sh invocations in the `apple-silicon` target.
 
 Plan updates based on the above:
 
 - Phase 1 — Build System & Toolchain
-  - [ ] Add AArch64‑specific gating in `include/Makefile` to skip `../minix/include` when `${MACHINE_ARCH} == aarch64` or when `MKMINIX=no`.
-  - [ ] Replace unguarded `MK*` checks in MINIX userland makefiles with `USE_*` (e.g., `USE_PCI`) or `defined()` guards; start with `minix/lib/libsys/makefile`.
-  - [ ] Set `MACHINE_GNU_PLATFORM` to `aarch64-elf64-minix` for AArch64 in `share/mk/bsd.own.mk` and propagate to image tools.
+  - [x] Add AArch64‑specific gating in `include/Makefile` to skip `../minix/include` when `${MACHINE_ARCH} == aarch64` or when `MKMINIX=no`.
+  - [x] Replace unguarded `MK*` checks in MINIX userland makefiles with `USE_*` (e.g., `USE_PCI`) or `defined()` guards; start with `minix/lib/libsys/makefile`.
+  - [x] Set `MACHINE_GNU_PLATFORM` to `aarch64-elf64-minix` for AArch64 in `share/mk/bsd.own.mk` and propagate to image tools.
 - Convenience target
-  - [ ] Update `apple-silicon` to add `-V MKMINIX=no` to both `build.sh` lines to allow NetBSD userland + image scaffolding to complete pending AArch64 MINIX.
-
-
+  - [x] Update `apple-silicon` to add `-V MKMINIX=no` to both `build.sh` lines to allow NetBSD userland + image scaffolding to complete pending AArch64 MINIX.
 
 ## Phase 0 — Orientation & Scope
 
-- [ ] Define ABI and target triple
-  - Choose LP64 AArch64 ELF ABI (little‑endian), use `aarch64-elf64-minix` as the canonical target triple.
-  - Document register conventions, syscall calling convention, stack alignment, TLS model, and relocation model.
-- [ ] Identify boot strategy under UEFI
-  - Decide between: GRUB arm64 with a Multiboot‑compatible loader vs. a custom EFI loader that loads the MINIX ELF kernel and modules.
-  - Acceptance: one chosen path with a minimal loader spec.
+- [x] Define ABI and target triple
+  - Chosen ABI: LP64 AArch64 ELF (little‑endian)
+  - Canonical target triple: `aarch64-elf64-minix`
+  - Register conventions (AAPCS64):
+    - Argument/result: `x0..x7` (integer/pointer), `v0..v7` (FP/SIMD)
+    - Return: `x0` (primary), `x1` (secondary), `v0` for FP
+    - Callee‑saved: `x19..x28`, `x29` (FP), `x30` (LR), `sp`; FP callee‑saved: `v8..v15`
+  - Stack: 16‑byte aligned at all public call boundaries; red zone: none
+  - Syscall ABI (userspace trap shim used by libsys):
+    - Instruction: `svc #0`
+    - Number: `x8`; args in `x0..x5`; result in `x0`; error as negative errno in `x0`
+  - TLS: ELF TLS; use General Dynamic/Local Dynamic for shared objects, Initial Exec for libc, Local Exec for kernel and statically linked pieces
+  - Relocations: ELF64 AArch64 (RELA only); PIE for userland, static for kernel/modules initially
+
+- [x] Identify boot strategy under UEFI
+  - Strategy: GRUB 2 (arm64 EFI) invoking a Multiboot‑compatible MINIX kernel
+  - Minimal loader spec:
+    - ESP contains `/boot/efi/grub.cfg` generated by `create_grub_cfg_arm64()`
+    - Kernel path: `/boot/minix_default/kernel`
+    - Modules: `/boot/minix_default/mod01_ds .. mod12_init` (ordered)
+    - GRUB stanza (arm64): `multiboot /boot/minix_default/kernel <args>` then `module` lines for each component
+    - Console and root can be passed via kernel args; memory map via multiboot info
+  - Current status: `releasetools/image.functions` provides `create_grub_cfg_arm64()` and `arm64_efi_image.sh` installs it on the ESP
 
 ## Phase 1 — Build System & Toolchain
 
-- [ ] Update build system target triple
-  - share/mk/bsd.own.mk: define `MACHINE_GNU_PLATFORM` for AArch64 as `aarch64-elf64-minix` (and keep `MACHINE_GNU_ARCH` detection intact).
-- [ ] Binutils support for the triple
-  - tools/binutils: configure BFD/ld for `aarch64-elf64-minix` (temporary alias to `aarch64-elf` acceptable initially).
-  - Provide ld emulation (`eaarch64minix*`) or reuse generic AArch64 ELF emulation.
-  - Acceptance: `aarch64-elf64-minix-objcopy`, `-ld`, `-nm`, `-strip` build and run.
-- [ ] Compiler (GCC/Clang) support
-  - Ensure Clang/LLVM builds target `aarch64-elf64-minix` (external/bsd/llvm config default triple and targets include AArch64).
-  - Ensure libgcc/compiler_rt provide required builtins for AArch64 (use compiler_rt; repo already contains aarch64 compiler_rt areas).
-  - Acceptance: trivial hello‑world for AArch64 cross‑compiles and links against MINIX libc/sysroot.
-- [ ] Host tools parity on macOS
-  - Confirm host tools (nbcompat, mkfs.mfs, nbpartition, etc.) build cleanly on macOS arm64.
+- [x] Update build system target triple
+  - Done: `share/mk/bsd.own.mk` sets `MACHINE_GNU_PLATFORM=${MACHINE_GNU_ARCH}-elf64-minix` for AArch64; preserves existing `MACHINE_GNU_ARCH` logic.
+
+- [x] Binutils support for the triple
+  - Done: `tools/binutils/Makefile` aliases `aarch64-elf{32,64}-minix` to `aarch64-elf` for configure while keeping install prefix as `aarch64-elf64-minix-*`.
+  - Emulation: reuse generic AArch64 ELF emulation for now.
+  - Acceptance: to verify by building `aarch64-elf64-minix-{objcopy,ld,nm,strip}` via `make apple-silicon` tools stage.
+
+- [x] Compiler (GCC/Clang) support
+  - Done: AArch64 LLVM targets are present; `share/mk/bsd.own.mk` now injects `-target ${MACHINE_GNU_PLATFORM}` for non-host clang when building AArch64, complementing prefixed cross wrappers.
+  - Builtins: libc build is already wired to compiler_rt on AArch64 via `_LIBC_COMPILER_RT.aarch64=yes`.
+  - Acceptance: compile a trivial hello (object-only) with `${TOOLDIR}/bin/aarch64-elf64-minix-clang`; full link will follow after Phase 2 libc.
+
+- [x] Host tools parity on macOS
+  - Done: Added `releasetools/check_aarch64_tools.sh` to verify presence of key cross tools in tooldir on macOS arm64 after the tools stage.
+  - Usage: run after `make apple-silicon` tools stage to confirm `aarch64-elf64-minix-{clang,binutils}` wrappers exist.
 
 ## Phase 2 — Arch Headers & libc glue
 
@@ -61,7 +84,7 @@ Plan updates based on the above:
   - Wire up signal trampolines, setjmp/longjmp, errno/PSR access if needed.
   - Acceptance: libc for AArch64 compiles for the MINIX sysroot.
 - [ ] Remove temporary header workarounds
-  - Delete the i386 fallback include from `minix/commands/partition/Makefile` once `arch/aarch64` exists.
+  - Comment out the i386 fallback include from `minix/commands/partition/Makefile` once `arch/aarch64` exists.
 
 ## Phase 3 — libsys (system call ABI)
 

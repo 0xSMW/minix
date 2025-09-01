@@ -3,6 +3,7 @@
 
 # gen sources
 .if defined(__MINIX)
+.  if ${MACHINE_ARCH} != "aarch64"
 .PATH: ${NETBSDSRCDIR}/minix/lib/libc/gen
 
 CPPFLAGS.fslib.c+= -I${NETBSDSRCDIR}/minix/fs
@@ -10,6 +11,7 @@ CPPFLAGS.fsversion.c+= -I${NETBSDSRCDIR}/minix/fs
 
 SRCS+= fsversion.c gcov.c itoa.c read_tsc_64.c fslib.c
 
+.  endif # ${MACHINE_ARCH} != "aarch64"
 .endif # defined(__MINIX)
 .PATH: ${ARCHDIR}/gen ${.CURDIR}/gen
 

@@ -58,8 +58,21 @@
 #ifndef _WCHAR_H_
 #define _WCHAR_H_
 
+/* Host tools on macOS: use system wchar to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <wchar.h>
+# define __NETBSD_WCHAR_REDIRECTED
+#endif
+
+#ifndef __NETBSD_WCHAR_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 #include <machine/wchar_limits.h>
 #include <sys/ansi.h>
 #include <sys/null.h>
@@ -137,6 +150,7 @@ size_t	wcslcpy(wchar_t *, const wchar_t *, size_t);
 int	wcswidth(const wchar_t *, size_t);
 int	wctob(wint_t);
 int	wcwidth(wchar_t);
+#endif /* !__NETBSD_WCHAR_REDIRECTED */
 
 unsigned long int wcstoul(const wchar_t * __restrict,
 	wchar_t ** __restrict, int);

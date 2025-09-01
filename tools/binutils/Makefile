@@ -11,8 +11,9 @@ BRANDING?=	\
 	--with-bugurl="http://www.NetBSD.org/support/send-pr.html" \
 	--with-lib-path="=/usr/lib" --with-sysroot
 
-# Configure target: workaround for unsupported aarch64-elf32-minix in BFD
-.if ${MACHINE_GNU_PLATFORM} == "aarch64-elf32-minix"
+# Configure target: workaround for unsupported aarch64-elf*-minix in BFD
+.if ${MACHINE_GNU_PLATFORM} == "aarch64-elf32-minix" || \
+    ${MACHINE_GNU_PLATFORM} == "aarch64-elf64-minix"
 BINUTILS_CONFIG_TARGET=	aarch64-elf
 .else
 BINUTILS_CONFIG_TARGET=	${MACHINE_GNU_PLATFORM}
@@ -116,9 +117,10 @@ clean: clean.native
 clean.native:
 	-rm -r -f .native
 
-# If we are overriding the target triple (e.g., aarch64-elf32-minix -> aarch64-elf),
+# If we are overriding the target triple (e.g., aarch64-elf*-minix -> aarch64-elf),
 # ensure stale configure caches are removed to avoid Autoconf refusing to proceed.
-.if ${MACHINE_GNU_PLATFORM} == "aarch64-elf32-minix"
+.if ${MACHINE_GNU_PLATFORM} == "aarch64-elf32-minix" || \
+    ${MACHINE_GNU_PLATFORM} == "aarch64-elf64-minix"
 .PHONY: force-reconfigure
 force-reconfigure:
 	-@echo "Forcing binutils reconfigure due to target alias override" >&2

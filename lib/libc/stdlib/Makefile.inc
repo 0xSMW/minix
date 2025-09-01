@@ -34,7 +34,9 @@ SRCS+=	malloc.c
 .endif
 
 .if defined(__MINIX)
+.  if ${MACHINE_ARCH} != "aarch64"
 .include "${NETBSDSRCDIR}/minix/lib/libc/Makefile.inc"
+.  endif # ${MACHINE_ARCH} != "aarch64"
 .endif # defined(__MINIX)
 
 CPPFLAGS.strtol.c+=	-I${LIBCDIR}/../../common/lib/libc/stdlib

@@ -31,8 +31,21 @@
 #ifndef _WCTYPE_H_
 #define	_WCTYPE_H_
 
+/* Host tools on macOS: use system wctype to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <wctype.h>
+# define __NETBSD_WCTYPE_REDIRECTED
+#endif
+
+#ifndef __NETBSD_WCTYPE_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 #include <sys/ansi.h>
 
 #ifdef	_BSD_WINT_T_

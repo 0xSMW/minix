@@ -584,9 +584,9 @@ dependall-distrib depend-distrib all-distrib: .PHONY
 .PHONY: apple-silicon
 apple-silicon:
 	@echo "[apple-silicon] Building evbarm64 tools..."
-	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no tools
+	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no -V MKMINIX=no tools
 	@echo "[apple-silicon] Building evbarm64 distribution..."
-	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no distribution
+	env PATH=/usr/bin:/bin:/usr/sbin:/sbin ./build.sh -U -u -j`sysctl -n hw.ncpu 2>/dev/null || echo 4` -m evbarm64-el -V MKINFO=no -V HAVE_GOLD=no -V MKMINIX=no distribution
 	@echo "[apple-silicon] Creating ARM64 EFI image..."
 	bash ./releasetools/arm64_efi_image.sh
 

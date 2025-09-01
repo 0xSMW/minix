@@ -55,6 +55,10 @@ __RCSID("$NetBSD: makefs.c,v 1.50 2013/08/05 14:41:57 reinoud Exp $");
 #include <stdbool.h>
 #include <util.h>
 
+#if HAVE_NBTOOL_CONFIG_H
+#include <compat_getopt.h>
+#endif
+
 #include "makefs.h"
 #include "mtree.h"
 #include "cd9660.h"

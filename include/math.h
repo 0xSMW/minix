@@ -18,8 +18,21 @@
 #ifndef _MATH_H_
 #define _MATH_H_
 
+/* Host tools on macOS: prefer system math.h to avoid header conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <math.h>
+# define __NETBSD_MATH_REDIRECTED
+#endif
+
+#ifndef __NETBSD_MATH_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 
 union __float_u {
 	unsigned char __dummy[sizeof(float)];

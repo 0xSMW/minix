@@ -10,6 +10,10 @@ SUBDIR+=	../external/gpl3/${EXTERNAL_GCC_SUBDIR}/lib/libgcc .WAIT
 .endif
 
 .if defined(__MINIX)
+# Gate MINIX userland libraries so AArch64 builds can skip them until ready,
+# and to honor top-level MKMINIX=no.
+.if !defined(MKMINIX) || ${MKMINIX} != "no"
+.if ${MACHINE_ARCH} != "aarch64"
 #LSC MINIX libc depends on
 # - libmthread because of sys/lib/libunwind
 SUBDIR+=	.WAIT
@@ -17,11 +21,15 @@ SUBDIR+=	.WAIT
 SUBDIR+=	../minix/lib/libsys
 SUBDIR+=	../minix/lib/libmthread
 SUBDIR+=	.WAIT
-.endif # defined(__MINIX)
+.endif
+.endif
+.endif # defined(__MINIX) first gating block
 SUBDIR+=	libc
 SUBDIR+=	.WAIT
 
 .if defined(__MINIX)
+.if !defined(MKMINIX) || ${MKMINIX} != "no"
+.if ${MACHINE_ARCH} != "aarch64"
 SUBDIR+=	../minix/lib/libasyn \
 		../minix/lib/libaudiodriver \
 		../minix/lib/libbdev \
@@ -65,7 +73,9 @@ SUBDIR+=	../minix/lib/libclkconf \
 SUBDIR+=	../minix/lib/libmagicrt
 .endif
 
-.endif # defined(__MINIX)
+.endif
+.endif
+.endif
 #
 # The SUBDIRs above are included here for completeness but should be built
 # and installed prior to make(dependall) in this file, as libraries listed

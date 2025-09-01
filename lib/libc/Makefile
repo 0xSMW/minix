@@ -104,7 +104,19 @@ SUBDIR+= pkgconfig
 .include "${.CURDIR}/thread-stub/Makefile.inc"
 .include "${.CURDIR}/time/Makefile.inc"
 .if defined(__MINIX)
+.  if ${MACHINE_ARCH} != "aarch64"
+.    if !defined(MKMINIX) || ${MKMINIX} != "no"
 .include "${NETBSDSRCDIR}/minix/lib/libc/sys/Makefile.inc"
+.    else
+.      if ${RUMPRUN} != "yes"
+.include "${.CURDIR}/tls/Makefile.inc"
+.      endif
+.    endif
+.  else
+.if ${RUMPRUN} != "yes"
+.include "${.CURDIR}/tls/Makefile.inc"
+.endif
+.  endif
 .else
 .if ${RUMPRUN} != "yes"
 .include "${.CURDIR}/tls/Makefile.inc"

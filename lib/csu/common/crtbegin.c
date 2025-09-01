@@ -27,6 +27,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <sys/cdefs.h>
+/* Fallback for toolchains that don't define __weakref_visible in cdefs */
+#ifndef __weakref_visible
+#define __weakref_visible extern
+#endif
 __RCSID("$NetBSD: crtbegin.c,v 1.9 2014/05/06 16:02:10 joerg Exp $");
 
 #include "crtbegin.h"

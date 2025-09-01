@@ -41,7 +41,11 @@
 
 #include <sys/featuretest.h>
 
+#if defined(__aarch64__)
+#include <aarch64/setjmp.h>
+#else
 #include <machine/setjmp.h>
+#endif
 
 #ifndef _JB_ATTRIBUTES
 #define _JB_ATTRIBUTES	/**/

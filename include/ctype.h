@@ -39,8 +39,21 @@
 #ifndef _CTYPE_H_
 #define _CTYPE_H_
 
+/* Host tools on macOS: use system ctype to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <ctype.h>
+# define __NETBSD_CTYPE_REDIRECTED
+#endif
+
+#ifndef __NETBSD_CTYPE_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 
 __BEGIN_DECLS
 int	isalnum(int);
@@ -98,5 +111,7 @@ __END_DECLS
 #else
 #include <sys/ctype_bits.h>
 #endif
+
+#endif /* !__NETBSD_CTYPE_REDIRECTED */
 
 #endif /* !_CTYPE_H_ */

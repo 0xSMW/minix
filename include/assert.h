@@ -41,9 +41,26 @@
  * multiple times, with and without NDEBUG defined.
  */
 
+/* Host tools on macOS: use system assert to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <assert.h>
+#else
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
-#include <sys/null.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
+#if defined(__has_include)
+# if __has_include(<sys/null.h>)
+#  include <sys/null.h>
+# endif
+#else
+# include <sys/null.h>
+#endif
+#endif
 
 #undef assert
 

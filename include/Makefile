@@ -45,7 +45,14 @@ INCSDIR=	/usr/include
 .if defined(__MINIX)
 # RPC is not compiled in the libc. This include also needs
 # rpcgen, which can be compiled if needed.
+#
+# Gate MINIX headers on AArch64 or when MKMINIX is explicitly disabled,
+# to avoid descending into non-existent arch headers during include builds.
+.  if ${MACHINE_ARCH} != "aarch64"
+.    if !defined(MKMINIX) || ${MKMINIX} != "no"
 SUBDIR+=	../minix/include
+.    endif
+.  endif
 .else
 SUBDIR=		rpc
 .endif # defined(__MINIX)

@@ -1,6 +1,9 @@
 # $NetBSD: Makefile.inc,v 1.2 2015/04/15 19:13:46 mrg Exp $
 
 SRCS+=	__sigaction14_sigtramp.c __sigtramp2.S
+.PATH: ${ARCHDIR}/sys
+CPPFLAGS.assym.h+= -D__minix
+CPPFLAGS.assym.h+= -D_BSD_JBSLOT_T_=long
 #SRCS+= qdivrem.c
 
 CPPFLAGS += -I.

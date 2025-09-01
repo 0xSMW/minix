@@ -11,10 +11,10 @@ NOMAN=		# defined
 
 .include <bsd.own.mk>
 
-_ARCHDIR=	${.CURDIR}/../../sys/arch
-_INCDIR=	${.CURDIR}/../../include
-_SYSDIR=	${.CURDIR}/../../sys/sys
-_UFSDIR=	${.CURDIR}/../../sys/ufs
+_ARCHDIR=	${NETBSDSRCDIR}/sys/arch
+_INCDIR=	${NETBSDSRCDIR}/include
+_SYSDIR=	${NETBSDSRCDIR}/sys/sys
+_UFSDIR=	${NETBSDSRCDIR}/sys/ufs
 _SUBDIR!=	cd ${_ARCHDIR} && ${MAKE} -V SUBDIR
 
 .if make(depend) || make(all) || make(dependall) || make(install)
@@ -22,6 +22,28 @@ _SUBDIR!=	cd ${_ARCHDIR} && ${MAKE} -V SUBDIR
 # and TOOL_SED will not yet have been built.
 _UFS_INCS!=	cd ${_UFSDIR} && find ffs ufs -name '*.h'
 _ARCH_INCS!=	${TOOL_SED} -e 's/^\#.*//' ${.CURDIR}/../headerlist
+.if ${MACHINE_CPU} == "aarch64"
+# Ensure essential aarch64 machine headers are present for host tools
+_ARCH_INCS+=	aarch64/include/ansi.h \
+			aarch64/include/cdefs.h \
+			aarch64/include/int_types.h \
+			aarch64/include/types.h \
+			aarch64/include/int_mwgwtypes.h \
+			aarch64/include/int_limits.h \
+			aarch64/include/int_const.h \
+			aarch64/include/endian_machdep.h \
+			aarch64/include/bswap.h
+# Also ensure arm base headers are available for wrappers
+_ARCH_INCS+=	arm/include/ansi.h \
+			arm/include/cdefs.h \
+			arm/include/int_types.h \
+			arm/include/int_mwgwtypes.h \
+			arm/include/int_limits.h \
+			arm/include/int_const.h \
+			arm/include/endian.h \
+			arm/include/endian_machdep.h \
+			arm/include/bswap.h
+.endif
 .endif
 
 .if !defined(__MINIX)
@@ -34,12 +56,28 @@ _ARCH_INCS+=	${sh3mach}/include/endian_machdep.h
 .endif # !defined(__MINIX)
 
 _INCS=		disktab.h
+
+# Core sys headers host tools often need
+
 _SYSINCS=	bootblock.h \
 		disklabel.h disklabel_acorn.h disklabel_gpt.h disklabel_rdb.h \
 		dkbad.h \
-		exec_elf.h
+		exec_elf.h \
+			cdefs.h featuretest.h null.h \
+			endian.h ansi.h
+_SYSINCS+=	common_int_types.h
+_SYSINCS+=	cdefs_aout.h
 
 HOST_CPPFLAGS+=	-I${TOOLDIR}/include -I${TOOLDIR}/include/nbinclude
+
+# Determine which arch dir to link as 'machine'
+.if ${MACHINE_CPU} == "aarch64"
+_MACHINE_LINK:=	aarch64
+.elif ${MACHINE_CPU} == "arm"
+_MACHINE_LINK:=	arm
+.else
+_MACHINE_LINK:=	${MACHINE}
+.endif
 
 beforedepend: 
 	${HOST_INSTALL_DIR} ${TOOLDIR}/include/nbinclude
@@ -53,6 +91,6 @@ beforedepend:
 	cd ${_SYSDIR} && \
 	    ${TOOL_PAX} -rw ${_SYSINCS} ${TOOLDIR}/include/nbinclude/sys
 	cd ${_UFSDIR} && \
-	    ${TOOL_PAX} -rw ${_UFS_INCS} ${TOOLDIR}/include/nbinclude/ufs
+		    ${TOOL_PAX} -rw ${_UFS_INCS} ${TOOLDIR}/include/nbinclude/ufs
 	cd ${TOOLDIR}/include/nbinclude && rm -f machine && \
-	    ${HOST_INSTALL_SYMLINK} ${MACHINE} machine
+		    ${HOST_INSTALL_SYMLINK} ${_MACHINE_LINK} machine

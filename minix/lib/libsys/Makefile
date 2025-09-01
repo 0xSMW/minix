@@ -106,7 +106,7 @@ SRCS+=  \
 	vm_set_priv.c \
 	vm_update.c
 
-.if ${MKPCI} != "no"
+.if (defined(USE_PCI) && ${USE_PCI} != "no") || (defined(MKPCI) && ${MKPCI} != "no")
 SRCS+=	pci_attr_r16.c \
 	pci_attr_r32.c \
 	pci_attr_r8.c \

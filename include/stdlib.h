@@ -34,14 +34,37 @@
 #ifndef _STDLIB_H_
 #define _STDLIB_H_
 
+/* Host tools on macOS: prefer system stdlib.h to avoid header conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <stdlib.h>
+# define __NETBSD_STDLIB_REDIRECTED
+#endif
+
+#ifndef __NETBSD_STDLIB_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 
 #if defined(_NETBSD_SOURCE)
 #include <sys/types.h>		/* for quad_t, etc. */
 #endif
 
-#include <machine/ansi.h>
+#if defined(__has_include)
+# if __has_include(<machine/ansi.h>)
+#  include <machine/ansi.h>
+# elif __has_include(<aarch64/ansi.h>)
+#  include <aarch64/ansi.h>
+# elif __has_include(<arm/ansi.h>)
+#  include <arm/ansi.h>
+# endif
+#else
+# include <machine/ansi.h>
+#endif
 
 #ifdef	_BSD_SIZE_T_
 typedef	_BSD_SIZE_T_	size_t;
@@ -82,7 +105,13 @@ typedef struct {
 #endif
 
 
-#include <sys/null.h>
+#if defined(__has_include)
+# if __has_include(<sys/null.h>)
+#  include <sys/null.h>
+# endif
+#else
+# include <sys/null.h>
+#endif
 
 #define	EXIT_FAILURE	1
 #define	EXIT_SUCCESS	0

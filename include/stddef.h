@@ -34,9 +34,36 @@
 #ifndef _STDDEF_H_
 #define _STDDEF_H_
 
+/*
+ * When building host tools on macOS with libc++ (C++ includes <cstddef>),
+ * prefer the system's <stddef.h> to avoid mixing NetBSD C headers with
+ * the host C++ standard library headers.
+ */
+#if defined(__APPLE__) && defined(__cplusplus) && !defined(__minix)
+# include_next <stddef.h>
+# define __NETBSD_STDDEF_REDIRECTED
+#endif
+
+#ifndef __NETBSD_STDDEF_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
-#include <machine/ansi.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
+#if defined(__has_include)
+# if __has_include(<machine/ansi.h>)
+#  include <machine/ansi.h>
+# elif __has_include(<aarch64/ansi.h>)
+#  include <aarch64/ansi.h>
+# elif __has_include(<arm/ansi.h>)
+#  include <arm/ansi.h>
+# endif
+#else
+# include <machine/ansi.h>
+#endif
 
 #ifdef	_BSD_PTRDIFF_T_
 typedef	_BSD_PTRDIFF_T_	ptrdiff_t;
@@ -53,7 +80,13 @@ typedef	_BSD_WCHAR_T_	wchar_t;
 #undef	_BSD_WCHAR_T_
 #endif
 
-#include <sys/null.h>
+#if defined(__has_include)
+# if __has_include(<sys/null.h>)
+#  include <sys/null.h>
+# endif
+#else
+# include <sys/null.h>
+#endif
 
 #if __GNUC_PREREQ__(4, 0)
 #define	offsetof(type, member)	__builtin_offsetof(type, member)
@@ -66,5 +99,7 @@ typedef	_BSD_WCHAR_T_	wchar_t;
 #define	offsetof(type, member) __offsetof__((reinterpret_cast<size_t> \
     (&reinterpret_cast<const volatile char &>(static_cast<type *>(0)->member))))
 #endif  
- 
+
+#endif /* !__NETBSD_STDDEF_REDIRECTED */
+
 #endif /* _STDDEF_H_ */

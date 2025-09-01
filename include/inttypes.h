@@ -32,8 +32,21 @@
 #ifndef _INTTYPES_H_
 #define _INTTYPES_H_
 
+/* Host tools on macOS: use system inttypes to avoid conflicts. */
+#if defined(__APPLE__) && !defined(__minix)
+# include_next <inttypes.h>
+# define __NETBSD_INTTYPES_REDIRECTED
+#endif
+
+#ifndef __NETBSD_INTTYPES_REDIRECTED
 #include <sys/cdefs.h>
-#include <sys/featuretest.h>
+#if defined(__has_include)
+# if __has_include(<sys/featuretest.h>)
+#  include <sys/featuretest.h>
+# endif
+#else
+# include <sys/featuretest.h>
+#endif
 #include <sys/inttypes.h>
 #include <machine/ansi.h>
 
@@ -91,5 +104,7 @@ uintmax_t	strtou_l(const char * __restrict, char ** __restrict, int,
 #endif /* defined(_NETBSD_SOURCE) */
 
 __END_DECLS
+
+#endif /* !__NETBSD_INTTYPES_REDIRECTED */
 
 #endif /* !_INTTYPES_H_ */

@@ -26,6 +26,12 @@ CC?=	gcc
 
 MKDEP?= CC=${CC:Q} mkdep
 MKDEPCXX?= CC=${CXX:Q} mkdep
+
+. if ${MACHINE_ARCH} == "aarch64"
+# Allow in-tree aarch64 wrappers (e.g., aarch64/asm.h) before includes install
+CPPFLAGS+=	-I${NETBSDSRCDIR}/sys/arch
+CPPFLAGS+=	-I${NETBSDSRCDIR}/include
+. endif
 .endif # defined(__MINIX)
 
 .if ${MKREPRO:Uno} == "yes"

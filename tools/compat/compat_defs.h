@@ -30,6 +30,168 @@
 #define __USE_ISOC99 1
 #endif	/* __linux__ && HAVE_FEATURES_H */
 
+/*
+ * Darwin/macOS SDK annotations and inlining helpers may be referenced from
+ * SDK headers included below. Define conservative fallbacks before any
+ * system header includes so parsing succeeds even if NetBSD nbinclude
+ * headers shadow macOS <sys/cdefs.h>.
+ */
+#if defined(__APPLE__)
+/* Unrestrict Darwin headers: expose full API surface. */
+# ifndef _DARWIN_C_SOURCE
+#  define _DARWIN_C_SOURCE 1
+# endif
+/* Ensure fixed-width integer typedefs are available for SDK headers. */
+# include <stdint.h>
+# ifndef __header_inline
+#  if defined(__GNUC__)
+#   define __header_inline static __inline__
+#  else
+#   define __header_inline static inline
+#  endif
+# endif
+/* Additional Darwin annotations sometimes used in SDK headers */
+# ifndef __disable_tail_calls
+#  define __disable_tail_calls
+# endif
+# ifndef __unsafe_forge_null_terminated
+  /* Provide a reasonable fallback that preserves function name context. */
+#  define __unsafe_forge_null_terminated(_type, _n) __func__
+# endif
+# ifndef __deprecated
+#  if defined(__GNUC__)
+#   define __deprecated __attribute__((deprecated))
+#  else
+#   define __deprecated
+#  endif
+# endif
+# ifndef __header_always_inline
+#  if defined(__GNUC__)
+#   define __header_always_inline static __inline__ __attribute__((__always_inline__))
+#  else
+#   define __header_always_inline static inline
+#  endif
+# endif
+/* Fallbacks for Darwin function alias/versioning annotations. */
+# ifndef __DARWIN_ALIAS
+#  define __DARWIN_ALIAS(sym)
+# endif
+# ifndef __DARWIN_ALIAS_C
+#  define __DARWIN_ALIAS_C(sym)
+# endif
+# ifndef __DARWIN_EXTSN
+#  define __DARWIN_EXTSN(sym)
+# endif
+# ifndef __DARWIN_EXTSN_C
+#  define __DARWIN_EXTSN_C(sym)
+# endif
+# ifndef __DARWIN_INODE64
+#  define __DARWIN_INODE64(sym) /* annotation ignored */
+# endif
+# ifndef __DARWIN_1050
+#  define __DARWIN_1050(sym) /* annotation ignored */
+# endif
+# ifndef __DARWIN_ALIAS_STARTING
+#  define __DARWIN_ALIAS_STARTING(_mac,_ios,_sym) /* annotation ignored */
+# endif
+/* Swift/Clang availability and attribute shims */
+# ifndef __swift_nonisolated_unsafe
+#  define __swift_nonisolated_unsafe
+# endif
+# ifndef __swift_unavailable
+#  define __swift_unavailable(...)
+# endif
+# ifndef __deprecated_msg
+#  define __deprecated_msg(...)
+# endif
+# ifndef __cold
+#  define __cold
+# endif
+/* malloc/malloc.h attributes */
+# ifndef __result_use_check
+#  define __result_use_check
+# endif
+# ifndef __alloc_size
+#  define __alloc_size(...)
+# endif
+# ifndef __alloc_align
+#  define __alloc_align(...)
+# endif
+# ifndef __unsafe_indexable
+#  define __unsafe_indexable
+# endif
+# ifndef __sized_by_or_null
+#  define __sized_by_or_null(...)
+# endif
+# ifndef _MALLOC_TYPE_AVAILABILITY
+#  define _MALLOC_TYPE_AVAILABILITY
+# endif
+# ifndef _MALLOC_TYPED
+#  define _MALLOC_TYPED(...)
+# endif
+/* More Darwin attribute/availability shims */
+# ifndef __dead2
+#  define __dead2
+# endif
+# ifndef __pure2
+#  define __pure2
+# endif
+# ifndef __POSIX_C_DEPRECATED
+#  define __POSIX_C_DEPRECATED(...)
+# endif
+# ifndef __DARWIN_ALIAS_I
+#  define __DARWIN_ALIAS_I(sym)
+# endif
+# ifndef _LIBC_SIZE
+#  define _LIBC_SIZE(x) x
+# endif
+/* libc helper macros sometimes used in prototypes */
+# ifndef _LIBC_CSTR
+#  define _LIBC_CSTR
+# endif
+# ifndef _LIBC_COUNT
+#  define _LIBC_COUNT(x) x
+# endif
+# ifndef _LIBC_COUNT__PATH_MAX
+#  define _LIBC_COUNT__PATH_MAX
+# endif
+/* getopt() globals when <unistd.h> hides them */
+# ifndef optarg
+extern char *optarg;
+# endif
+# ifndef optind
+extern int optind;
+# endif
+# ifndef opterr
+extern int opterr;
+# endif
+# ifndef optopt
+extern int optopt;
+# endif
+/* getopt() prototype (when hidden) */
+# if !defined(getopt)
+extern int getopt(int, char * const [], const char *);
+# endif
+# ifndef API_AVAILABLE
+#  define API_AVAILABLE(...)
+# endif
+# ifndef API_UNAVAILABLE
+#  define API_UNAVAILABLE(...)
+# endif
+# ifndef API_DEPRECATED
+#  define API_DEPRECATED(...)
+# endif
+# ifndef API_DEPRECATED_WITH_REPLACEMENT
+#  define API_DEPRECATED_WITH_REPLACEMENT(...)
+# endif
+# ifndef API_UNAVAILABLE_BEGIN
+#  define API_UNAVAILABLE_BEGIN(...)
+# endif
+# ifndef API_UNAVAILABLE_END
+#  define API_UNAVAILABLE_END
+# endif
+#endif /* __APPLE__ */
+
 /* System headers needed for (re)definitions below. */
 
 #include <sys/types.h>
@@ -62,6 +224,48 @@
 #endif
 #if HAVE_STDDEF_H
 #include <stddef.h>
+#endif
+
+/* (Apple fallbacks block moved above prior to system includes) */
+
+#if defined(__APPLE__)
+/* Avoid providing prototypes if libc already declares or macro-wraps them. */
+# if !defined(snprintf)
+extern int snprintf(char * __restrict, size_t, const char * __restrict, ...);
+# endif
+# if !defined(strdup)
+extern char *strdup(const char *);
+# endif
+/* POSIX I/O prototypes that can be hidden by feature macros on Darwin. */
+# if !defined(pwrite)
+extern ssize_t pwrite(int, const void *, size_t, off_t);
+# endif
+# if !defined(pread)
+extern ssize_t pread(int, void *, size_t, off_t);
+# endif
+# if !defined(ftruncate)
+extern int ftruncate(int, off_t);
+# endif
+# if !defined(readlink)
+extern ssize_t readlink(const char * __restrict, char * __restrict, size_t);
+# endif
+# if !defined(fsync)
+extern int fsync(int);
+# endif
+/* stdio large-file positioning */
+# if !defined(fseeko)
+extern int fseeko(FILE *, off_t, int);
+# endif
+# if !defined(ftello)
+extern off_t ftello(FILE *);
+# endif
+/* Misc Unix/POSIX helpers sometimes hidden */
+# if !defined(fileno)
+extern int fileno(FILE *);
+# endif
+# if !defined(sync)
+extern void sync(void);
+# endif
 #endif
 
 #if HAVE_RPC_TYPES_H

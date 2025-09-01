@@ -43,6 +43,15 @@ CPPFLAGS+=	-D_LIBC -DLIBC_SCCS -DSYSLIBC_SCCS -D_REENTRANT
 CPPFLAGS+=	-D_DIAGNOSTIC
 .else
 CPPFLAGS+=	-D_LIBC
+.if defined(__MINIX)
+# Ensure libc uses Minix-specific code paths (e.g., reentrant.h) when cross-compiling
+CPPFLAGS+=	-D__minix
+CPPFLAGS+=	-I${NETBSDSRCDIR}/minix/include
+CPPFLAGS+=	-I${NETBSDSRCDIR}/sys/arch
+.if ${MACHINE_ARCH} == "aarch64"
+CPPFLAGS+=	-I${NETBSDSRCDIR}/sys/arch/aarch64/include
+.endif
+.endif
 .if defined(MLIBDIR)
 CPPFLAGS+=	-DMLIBDIR=\"${MLIBDIR}\"
 .endif

@@ -469,6 +469,17 @@ LDFLAGS+=	--sysroot=${DESTDIR}
 CPPFLAGS+=	--sysroot=/
 LDFLAGS+=	--sysroot=/
 .  endif
+.  if defined(__MINIX)
+# For target builds with Clang on AArch64, make the target triple explicit.
+# This complements prefixed cross-tool invocations and is harmless if already set.
+.    if "${ACTIVE_CC}" == "clang"
+.      if "${MACHINE_CPU}" == "aarch64" || "${MACHINE_ARCH}" == "aarch64" || "${MACHINE_ARCH}" == "aarch64eb"
+CLANG_TARGET_FLAGS?=	-target ${MACHINE_GNU_PLATFORM}
+CFLAGS+=		${CLANG_TARGET_FLAGS}
+CXXFLAGS+=	${CLANG_TARGET_FLAGS}
+.      endif
+.    endif
+.  endif # defined(__MINIX)
 .endif
 .endif	# EXTERNAL_TOOLCHAIN						# }
 
@@ -1077,7 +1088,12 @@ MACHINE_GNU_PLATFORM?=${MACHINE_GNU_ARCH}--netbsd
 
 .if defined(__MINIX)
 # We have a simpler toolchain naming scheme
+# Use 64-bit ELF for AArch64, 32-bit ELF otherwise.
+.  if ${MACHINE_CPU} == "aarch64" || ${MACHINE_ARCH} == "aarch64" || ${MACHINE_ARCH} == "aarch64eb"
+MACHINE_GNU_PLATFORM:=${MACHINE_GNU_ARCH}-elf64-minix
+.  else
 MACHINE_GNU_PLATFORM:=${MACHINE_GNU_ARCH}-elf32-minix
+.  endif
 
 # We need to check for HAVE_GOLD after LD has been set
 .  if ${_HAVE_GOLD:U} == ""

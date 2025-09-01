@@ -109,7 +109,11 @@ CONFIGURE_PLATFORM!= if [ -s .configure_done ]; then cat .configure_done; else e
 configure_cleanup:
 	@mkdir build 2>/dev/null || true
 	@(echo "Cleaning stale cache files ${BUILD_PLATFORM} != ${CONFIGURE_PLATFORM}")
-	@(cd build && find . -name config.cache | xargs rm -f)
+	# Avoid using xargs/find which may call sysconf in restricted sandboxes.
+	# Manually clear a few likely config.cache locations without recursion.
+	@(cd build && for d in . */ */*; do \
+		[ -f "$${d}/config.cache" ] && rm -f "$${d}/config.cache" || true; \
+	done)
 configure_cleanup=configure_cleanup
 .endif
 

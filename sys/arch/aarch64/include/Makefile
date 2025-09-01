@@ -14,6 +14,11 @@ INCS=		asm.h \
 		int_const.h \
 		wchar_limits.h \
 		bswap.h \
+		int_fmtio.h \
+		signal.h \
+		limits.h \
+		param.h \
+		elf_machdep.h \
 		int_types.h \
 		types.h
 

@@ -127,9 +127,11 @@ clean_METALOG: .PHONY
 .else	# MKUNPRIVED
 METALOG.unpriv= -M ${METALOG}.sanitised
 sanitise_METALOG: .PHONY ${METALOG}.sanitised
+
 ${METALOG}.sanitised: ${METALOG}
 	<${METALOG} \
 	    ${${MKUPDATE} != "no" :? ${METALOG_REMOVE_DUPLICATES} | :} \
+	    ${TOOL_SED} -e '/^\.\/usr\/include\/machine\/aarch64[[:space:]]/d' | \
 	    sort | ${TOOL_MTREE} -CSM -k all -R time -N ${NETBSDSRCDIR}/etc \
 	    >${METALOG}.new
 	mv ${METALOG}.new ${METALOG}.sanitised

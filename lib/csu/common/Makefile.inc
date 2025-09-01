@@ -9,6 +9,10 @@ COMMON_DIR:=	${.CURDIR}/common
 .PATH:		${COMMON_DIR}
 
 CPPFLAGS+=	-I${NETBSDSRCDIR}/libexec/ld.elf_so -I${COMMON_DIR} -I.
+.if ${MACHINE_ARCH} == "aarch64"
+# Use wrapper headers before includes are installed and ensure ELF cdefs.
+CPPFLAGS+=	-I${NETBSDSRCDIR}/sys/arch -D__ELF__ -D__minix
+.endif
 
 OBJS+=		crt0.o gcrt0.o crti.o crtn.o
 OBJS+=		crtbegin.o crtend.o
