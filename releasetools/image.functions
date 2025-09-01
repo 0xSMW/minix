@@ -379,6 +379,10 @@ set gfxmode=text
 
 menuentry "MINIX (arm64)" {
         set root=(hd0,1)
+        # Optionally load a device tree blob if present
+        if [ -f /boot/efi/virt.dtb ]; then
+            devicetree /boot/efi/virt.dtb
+        fi
         # NOTE: Requires an AArch64 MINIX kernel with a suitable EFI/multiboot entrypoint
         multiboot /boot/minix_default/kernel rootdevname=c0d0p0
         module /boot/minix_default/mod01_ds

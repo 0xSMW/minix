@@ -130,11 +130,11 @@ Plan updates based on the above:
 
 ## Phase 7 — Boot Loader Path (UEFI)
 
-- [ ] Decide and implement loader
-  - Option A: GRUB arm64 with a MINIX loader module (Multiboot‑like handoff) — requires writing a loader that prepares bootinfo and loads modules.
-- [ ] Image builder adaptations
-  - Update `releasetools/arm64_efi_image.sh` and `image.functions` to write the correct loader and config (GRUB cfg or start.efi) for AArch64.
-  - Include a 64-bit `virt.dtb` in EFI images and ensure the loader passes it to the kernel.
+- [x] Decide and implement loader
+  - Chosen: GRUB arm64 EFI (`bootaa64.efi`) with `multiboot` stanza; modules loaded from `/boot/minix_default`.
+- [x] Image builder adaptations
+  - `releasetools/image.functions:create_grub_cfg_arm64()` optionally loads a DTB via `devicetree /boot/efi/virt.dtb` when present.
+  - `releasetools/arm64_efi_image.sh` copies `${VIRT_DTB}` into the ESP as `/boot/efi/virt.dtb` if provided.
   - Acceptance: `minix_arm64_efi.img` boots to the MINIX kernel on QEMU/Parallels.
 
 ## Phase 8 — Distribution & Sets

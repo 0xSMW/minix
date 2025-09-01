@@ -114,6 +114,11 @@ if [ -d ${MODDIR} ]; then
   cp ${MODDIR}/* ${EFI_DIR}/boot/minix_default/ || true
 fi
 
+# Optionally include a device tree if provided via VIRT_DTB
+if [ -n "${VIRT_DTB}" ] && [ -f "${VIRT_DTB}" ]; then
+  cp "${VIRT_DTB}" ${EFI_DIR}/boot/efi/virt.dtb
+fi
+
 # Copy GRUB EFI binary if present
 if [ -f ${RELEASETOOLSDIR}/grub/grub-core/bootaa64.efi ]; then
   cp ${RELEASETOOLSDIR}/grub/grub-core/bootaa64.efi ${EFI_DIR}/boot/efi/BOOTAA64.EFI
